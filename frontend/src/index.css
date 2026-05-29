@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add padding to body to prevent content from being hidden behind fixed navbar */
+/* Adjusted padding-top slightly */
+body.with-navbar-padding {
+  padding-top: 68px; /* 네비게이션 바 높이에 따라 조정 */
+}
