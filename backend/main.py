@@ -16,7 +16,7 @@ import asyncio
 import logging
 import traceback
 from app.database import SessionLocal
-from app.utils import update_stock_prices_based_on_trades
+from app.utils import update_stock_prices_based_on_trades, update_user_assets
 from app.routers import user_info, stock_info, news, reload
 
 
@@ -30,6 +30,7 @@ logging.basicConfig(
 async def lifespan(app: FastAPI):
     logging.info("🚀 FastAPI lifespan 시작됨")
     asyncio.create_task(run_price_updater())  # 주가 자동 갱신 태스크 실행
+    asyncio.create_task(run_assets_updater())  # 총자산 자동 계산 태스크 실행
     yield  # 앱 실행 중
     logging.info("🛑 FastAPI lifespan 종료됨")
 
@@ -73,17 +74,32 @@ app.add_middleware(
 )
 
 
-# 주가 갱신 루프 함수 (5분마다 실행)
+# 주가 갱신 루프 함수 (1분마다 실행)
 async def run_price_updater():
     while True:
         db = SessionLocal()
         try:
             logging.info("📊 [AUTO] 주가 갱신 시작")
-            update_stock_prices_based_on_trades(db)  # utils.py 내 함수 호출
+            update_stock_prices_based_on_trades(db)
             logging.info("✅ [AUTO] 주가 갱신 완료")
         except Exception:
             logging.error("❌ 주가 갱신 중 오류 발생:")
             traceback.print_exc()
         finally:
             db.close()
-        await asyncio.sleep(60)  # 5분 간격-> 수정(1분)
+        await asyncio.sleep(60)
+
+# 총자산 계산 루프 함수 (1분마다 실행)
+async def run_assets_updater():
+    while True:
+        db = SessionLocal()
+        try:
+            logging.info("💰 [AUTO] 총자산 계산 시작")
+            update_user_assets(db)
+            logging.info("✅ [AUTO] 총자산 계산 완료")
+        except Exception:
+            logging.error("❌ 총자산 계산 중 오류 발생:")
+            traceback.print_exc()
+        finally:
+            db.close()
+        await asyncio.sleep(60)
