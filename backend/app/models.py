@@ -83,6 +83,16 @@ class NewsItem(Base):
     impact = Column(Float)
     timestamp = Column(DateTime, default=datetime.now(ZoneInfo("Asia/Seoul")))
 
+# ✅ 유저 총자산 테이블
+class UserAssets(Base):
+    __tablename__ = "user_assets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, index=True)
+    balance = Column(Float)
+    stock_value = Column(Float)
+    total_assets = Column(Float)
+    updated_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Asia/Seoul")))
 
 # ✅ 자동 가격 변동률 테이블
 class PriceChange(Base):
