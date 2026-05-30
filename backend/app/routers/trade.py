@@ -63,7 +63,7 @@ def trade(
     if not price_change:
         raise HTTPException(status_code=400, detail="PriceChange not set for this stock")
 
-    delta = trade_data.quantity * 0.0001  # 거래 수량 기준 가격 영향 (0.01%)
+    delta = trade_data.quantity * 0.01  # 거래 수량 기준 가격 영향 (0.01%)
     if trade_data.trade_type == "buy":
         price_change.num += delta
     else:  # sell
