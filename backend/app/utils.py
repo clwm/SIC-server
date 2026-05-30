@@ -126,3 +126,35 @@ def update_stock_prices_based_on_trades(db: Session):
     except Exception as e:
         db.rollback()
         logging.error("❌ 주가 갱신 중 예외 발생:", exc_info=True)
+
+def update_user_assets(db: Session):
+    from app.models import User, Holding, Stock, UserAssets
+    try:
+        users = db.query(User).all()
+        for user in users:
+            holdings = db.query(Holding).filter_by(user_id=user.id).all()
+            stock_value = sum(
+                h.quantity * db.query(Stock).filter_by(id=h.stock_id).first().price
+                for h in holdings
+                if db.query(Stock).filter_by(id=h.stock_id).first()
+            )
+            total = user.balance + stock_value
+
+            existing = db.query(UserAssets).filter_by(username=user.username).first()
+            if existing:
+                existing.balance = user.balance
+                existing.stock_value = stock_value
+                existing.total_assets = total
+                existing.updated_at = datetime.now(ZoneInfo("Asia/Seoul"))
+            else:
+                db.add(UserAssets(
+                    username=user.username,
+                    balance=user.balance,
+                    stock_value=stock_value,
+                    total_assets=total,
+                    updated_at=datetime.now(ZoneInfo("Asia/Seoul"))
+                ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logging.error("❌ 총자산 계산 중 예외 발생:", exc_info=True)
